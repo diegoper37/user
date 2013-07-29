@@ -13,7 +13,7 @@
  * @access   public
  */
 
-namespace User\Entity\Usuario;
+namespace User\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Base\Traits\TraitId,
@@ -29,6 +29,7 @@ use Zend\Form\Annotation;
  * @author   Diego Pimentel <diegoper37@hotmail.com>
  *
  * @ORM\Entity(repositoryClass="User\Entity\Repository\UserRepository")
+ * @ORM\Table(name="users")
  *
  * @Annotation\Name("Users")
  * @Annotation\Hydrator("Zend\Stdlib\Hydrator\ObjectProperty")
@@ -42,7 +43,7 @@ class User {
     /**
      * Atributo de $profile
      *
-     * @ORM\OneToOne(targetEntity="Profile", mappedBy="login")
+     * @ORM\OneToOne(targetEntity="Profile", mappedBy="user")
      * @var obj
      * @access protected
      */
