@@ -24,7 +24,7 @@ use Zend\Form\Annotation;
  * Class User\Entity\Profile
  *
  * @category PHP
- * @package  Petcad
+ * @package  User
  * @author   Diego Pimentel <diegoper37@hotmail.com>
  *
  * @ORM\Entity(repositoryClass="User\Entity\Repository\ProfileRepository")

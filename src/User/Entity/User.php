@@ -62,6 +62,20 @@ class User {
      * @access protected
      */
     protected $login = NULL;
+    
+    /**
+     * Atributo de $email
+     *
+     * @ORM\Column(type="string", length=100, unique=true)
+     * @Annotation\Filter({"name":"StringTrim"})
+     * @Annotation\Validator({"name":"StringLength", "options":{"min":3, "max":100}})
+     * @Annotation\Attributes({"type":"text"})
+     * @Annotation\Options({"label":"Nome:"})
+     *
+     * @var string
+     * @access protected
+     */
+    protected $displayName = NULL;    
 
     /**
      * Atributo de $email
@@ -175,5 +189,30 @@ class User {
     public function getSenha() {
         return $this->senha;
     }
+    
+    
+    /**
+     * Set displayName
+     *
+     * Metodo para atribuir valor ao atributo $displayName.
+     *
+     * @param string $displayName
+     * @return obj
+     */
+    public function setDisplayName($displayName) {
+        $this->displayName = (string) $displayName;
+        $this->displayName = md5($this->displayName);
+        return $this;
+    }
 
+    /**
+     * Get displayName
+     *
+     * Metodo para receber o valor do atributo $displayName.
+     *
+     * @return string $displayName
+     */
+    public function getDisplayName() {
+        return $this->displayName;
+    }    
 }
