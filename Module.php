@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Zend Framework (http://framework.zend.com/)
  *
@@ -11,23 +12,24 @@ namespace User;
 
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
+use DoctrineORMModule\Service\EntityManagerFactory;
+use DoctrineORMModule\Service\DBALConnectionFactory;
+use User\Auth\Adapter\Doctrine as AuthAdapter;
+use User\Model\ModelUser as ModelUser;
 
-class Module
-{
-    public function onBootstrap(MvcEvent $e)
-    {
-        $eventManager        = $e->getApplication()->getEventManager();
+class Module {
+
+    public function onBootstrap(MvcEvent $e) {
+        $eventManager = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
     }
 
-    public function getConfig()
-    {
+    public function getConfig() {
         return include __DIR__ . '/config/module.config.php';
     }
 
-    public function getAutoloaderConfig()
-    {
+    public function getAutoloaderConfig() {
         return array(
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
@@ -36,4 +38,23 @@ class Module
             ),
         );
     }
+
+    public function getServiceConfig() {
+        return array(
+            'factories' => array(
+                'doctrine.entitymanager.orm_default' => new EntityManagerFactory('orm_default'),
+                'doctrine.connection.orm_default' => new DBALConnectionFactory('orm_default'),
+                'user.model_user' => function($sm) {
+                    $auth = new ModelUser($sm->get('doctrine.entitymanager.orm_default'));
+                    $auth->setSm($sm);
+                    return $auth;
+                },                
+                'user.auth' => function($sm) {
+                    $auth = new AuthAdapter($sm->get('doctrine.entitymanager.orm_default'));
+                    return $auth;
+                },
+            ),
+        );
+    }
+
 }
