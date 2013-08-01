@@ -2,6 +2,7 @@
 namespace User\Model;
 use Zend\Form\Annotation\AnnotationBuilder;
 use Zend\Authentication\Result as Result;
+use Zend\Authentication\AuthenticationService;
 
 define('ATIVO', 1);
 
@@ -30,35 +31,14 @@ class ModelUser
         return $this->sm;
     }
     
-   public function autentica($username, $password) {
-        $auth =  $this->getSm()->get('user.auth');
-        $auth->setIdentity($username);
-        $auth->setCredential($password);
-        $result = $auth->authenticate();
-
-        switch ($result->getCode()) {
-
-            case Result::FAILURE_IDENTITY_NOT_FOUND:
-                /** do stuff for nonexistent identity * */
-                echo 'FAILURE_IDENTITY_NOT_FOUND';
-                break;
-
-            case Result::FAILURE_CREDENTIAL_INVALID:
-                /** do stuff for invalid credential * */
-                echo 'FAILURE_CREDENTIAL_INVALID';
-                break;
-
-            case Result::SUCCESS:
-                /** do stuff for successful authentication * */
-                echo 'SUCCESS';
-                break;
-
-            default:
-                /** do stuff for other failure * */
-                 echo 'default';
-                break;
-        }
-        exit;
+   public function autentica($username, $password)
+   {
+        $authService = new AuthenticationService();
+        $authAdapter = $this->getSm()->get('user.auth');
+        $authAdapter->setIdentity($username);
+        $authAdapter->setCredential($password);
+        $authService->setAdapter($authAdapter);
+        return $authService->authenticate();        
     }    
 
     public function getLogins($offset,$maxResults = 10) {

@@ -28,33 +28,77 @@ return array(
     ),    
     'router' => array(
         'routes' => array(
-            // The following is a route to simplify getting started creating
-            // new controllers and actions without needing to create a new
-            // module. Simply drop new controllers in, and you can access them
-            // using the path /application/:controller/:action
             'user' => array(
-                'type'    => 'Literal',
+                'type' => 'Literal',
+                'priority' => 1000,
                 'options' => array(
-                    'route'    => '/user',
+                    'route' => '/user',
                     'defaults' => array(
-                        '__NAMESPACE__' => 'User\Controller',
-                        'controller'    => 'Index',
-                        'action'        => 'index',
+                        'controller' => 'user',
+                        'action'     => 'index',
                     ),
                 ),
                 'may_terminate' => true,
                 'child_routes' => array(
-                    'default' => array(
-                        'type'    => 'Segment',
+                    'login' => array(
+                        'type' => 'Literal',
                         'options' => array(
-                            'route'    => 'user/[:controller[/:action]]',
-                            'constraints' => array(
-                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            ),
+                            'route' => '/login',
                             'defaults' => array(
+                                'controller' => 'user',
+                                'action'     => 'login',
                             ),
                         ),
+                    ),
+                    'authenticate' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/authenticate',
+                            'defaults' => array(
+                                'controller' => 'user',
+                                'action'     => 'authenticate',
+                            ),
+                        ),
+                    ),
+                    'logout' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/logout',
+                            'defaults' => array(
+                                'controller' => 'user',
+                                'action'     => 'logout',
+                            ),
+                        ),
+                    ),
+                    'register' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/register',
+                            'defaults' => array(
+                                'controller' => 'user',
+                                'action'     => 'register',
+                            ),
+                        ),
+                    ),
+                    'changepassword' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/change-password',
+                            'defaults' => array(
+                                'controller' => 'user',
+                                'action'     => 'changepassword',
+                            ),
+                        ),                        
+                    ),
+                    'changeemail' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/change-email',
+                            'defaults' => array(
+                                'controller' => 'user',
+                                'action' => 'changeemail',
+                            ),
+                        ),                        
                     ),
                 ),
             ),
@@ -62,7 +106,7 @@ return array(
     ),
     'controllers' => array(
         'invokables' => array(
-            'User\Controller\Index' => 'User\Controller\IndexController'
+            'user' => 'User\Controller\UserController'
         ),
     ),
     'view_manager' => array(
@@ -71,12 +115,6 @@ return array(
         'doctype'                  => 'HTML5',
         'not_found_template'       => 'error/404',
         'exception_template'       => 'error/index',
-        'template_map' => array(
-            'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
-            'user/index/index' => __DIR__ . '/../view/user/index/index.phtml',
-            'error/404'               => __DIR__ . '/../view/error/404.phtml',
-            'error/index'             => __DIR__ . '/../view/error/index.phtml',
-        ),
         'template_path_stack' => array(
             __DIR__ . '/../view',
         ),

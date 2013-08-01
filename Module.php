@@ -14,16 +14,26 @@ use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use DoctrineORMModule\Service\EntityManagerFactory;
 use DoctrineORMModule\Service\DBALConnectionFactory;
-use User\Auth\Adapter\Doctrine as AuthAdapter;
+use User\Authentication\Adapter\Doctrine as AuthAdapter;
+use Zend\Authentication\AuthenticationService;
 use User\Model\ModelUser as ModelUser;
 
-class Module {
+class Module
+{
 
     public function onBootstrap(MvcEvent $e) {
         $eventManager = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
-    }
+        $application   = $e->getApplication();
+        $sharedManager = $application->getEventManager()->getSharedManager();
+        $sm = $application->getServiceManager();
+        $authService = new AuthenticationService();
+        if (!$authService->hasIdentity()) {
+            $model = $sm->get('user.model_user');
+            $model->autentica('guest', 'guest');
+        }
+    }    
 
     public function getConfig() {
         return include __DIR__ . '/config/module.config.php';
@@ -38,6 +48,23 @@ class Module {
             ),
         );
     }
+    
+    public function getControllerPluginConfig()
+    {
+        return array(
+            'factories' => array(
+                'userAuthentication' => function ($sm) {
+                    $serviceLocator = $sm->getServiceLocator();
+                    $authService = new \Zend\Authentication\AuthenticationService();
+                    $authAdapter = $serviceLocator->get('user.auth');
+                    $controllerPlugin = new Controller\Plugin\UserAuthentication;
+                    $controllerPlugin->setAuthService($authService);
+                    $controllerPlugin->setAuthAdapter($authAdapter);
+                    return $controllerPlugin;
+                },
+            ),
+        );
+    }    
 
     public function getServiceConfig() {
         return array(

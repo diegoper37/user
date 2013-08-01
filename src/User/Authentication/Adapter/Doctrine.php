@@ -8,7 +8,7 @@
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 
-namespace User\Auth\Adapter;
+namespace User\Authentication\Adapter;
 
 use Zend\Authentication\Adapter\AbstractAdapter as AbstractAdapter;
 use Zend\Authentication\Result as AuthenticationResult;
@@ -75,7 +75,7 @@ class Doctrine extends AbstractAdapter {
             return $this->authenticateCreateAuthResult();
         }
         //$this->resultRow = $resultIdentity;
-
+        $this->authenticateResultInfo['identity'] = $resultIdentity;
         $this->authenticateResultInfo['code']       = AuthenticationResult::SUCCESS;
         $this->authenticateResultInfo['messages'][] = 'Authentication successful.';
         return $this->authenticateCreateAuthResult();
