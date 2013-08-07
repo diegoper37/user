@@ -27,45 +27,66 @@ class UserController extends AbstractActionController
         if ($this->userAuthentication()->hasIdentity() && $this->userAuthentication()->getIdentity()->getLogin() <> 'guest') {
             return $this->redirect()->toRoute('home');
         }
-
+        
+        $login = NULL;
+        $model = $this->getServiceLocator()->get('user.model_user');
         $request = $this->getRequest();
-        $form    = $this->getLoginForm();
-
+        
         if ($request->getQuery()->get('redirect')) {
             $redirect = $request->getQuery()->get('redirect');
         } else {
             $redirect = false;
         }
-
-        if (!$request->isPost()) {
+        
+        $redirectUrl = $this->url()->fromRoute('user/login')
+            . ($redirect ? '?redirect=' . $redirect : '');
+        $prg = $this->prg($redirectUrl, true);
+        
+        if ($prg instanceof Response) {
+            return $prg;
+        } elseif ($prg === false) {
             return array(
-                'loginForm' => $form,
-                'redirect'  => $redirect,
+                'formLogin' => $model->getFormLogin(),
                 //'enableRegistration' => $this->getOptions()->getEnableRegistration(),
+                'redirect' => $redirect,
             );
-        }
-
-        $form->setData($request->getPost());
-
-        if (!$form->isValid()) {
-            echo 'form nao valido!';exit;
-            //$this->flashMessenger()->setNamespace('zfcuser-login-form')->addMessage($this->failedLoginMessage);
-            //return $this->redirect()->toUrl($this->url()->fromRoute(static::ROUTE_LOGIN).($redirect ? '?redirect='.$redirect : ''));
-        }
-
+        }        
+        
+        
         // clear adapters
         //$this->userAuthentication()->getAuthAdapter()->resetAdapters();
         $this->userAuthentication()->getAuthService()->clearIdentity();
-
-        return $this->forward()->dispatch(static::CONTROLLER_NAME, array('action' => 'authenticate'));
+        $form = $model->getFormLogin();
+        $form->setData($request->getPost());
+        if(!$form->isValid()){
+            return array(
+                'formLogin' => $form,
+                //'enableRegistration' => $this->getOptions()->getEnableRegistration(),
+                'redirect' => $redirect,
+            );           
+        }
+        return $this->forward()->dispatch('User', array('action' => 'authenticate'));
+        
     }
     
     public function authenticateAction()
     {
-        $this->userAuthentication()->getAuthAdapter()->setIdentity('diego');
-        $this->userAuthentication()->getAuthAdapter()->setCredential('102030');
-        return $this->userAuthentication()->getAuthService()->authenticate();          
+        $request = $this->getRequest();
+        //$adapter = $this->userAuthentication()->getAuthAdapter();
+        $redirect = $this->params()->fromPost('redirect', $this->params()->fromQuery('redirect', false));
         
+        $posts = $request->getPost();
+        $this->userAuthentication()->getAuthAdapter()->setIdentity($posts['usuario']);
+        $this->userAuthentication()->getAuthAdapter()->setCredential($posts['senha']);
+        $auth = $this->userAuthentication()->getAuthService()->authenticate();          
+
+        if (!$auth->isValid()) {
+            $this->flashMessenger()->setNamespace('user-login-form')->addMessage('falha');
+            return $this->redirect()->toUrl($this->url()->fromRoute('user/login')
+                . ($redirect ? '?redirect='.$redirect : ''));
+        }
+        
+        return $this->redirect()->toUrl($redirect);
     }
     
     public function logoutAction()
@@ -74,5 +95,46 @@ class UserController extends AbstractActionController
         $auth->clearIdentity();
 
         return $this->redirect()->toRoute('home');
+    }
+    
+    public function registerAction()
+    {
+        $login = NULL;
+        $model = $this->getServiceLocator()->get('user.model_user');
+        $request = $this->getRequest();
+        
+        if ($request->getQuery()->get('redirect')) {
+            $redirect = $request->getQuery()->get('redirect');
+        } else {
+            $redirect = false;
+        }
+        
+        $redirectUrl = $this->url()->fromRoute('user/register')
+            . ($redirect ? '?redirect=' . $redirect : '');
+        $prg = $this->prg($redirectUrl, true);
+        
+        if ($prg instanceof Response) {
+            return $prg;
+        } elseif ($prg === false) {
+            return array(
+                'formLogin' => $model->getFormLoginCadastro(),
+                //'enableRegistration' => $this->getOptions()->getEnableRegistration(),
+                'redirect' => $redirect,
+            );
+        }
+        $login = $model->cadastrarLogin($request->getPost());
+//
+        $redirect = ($request->getQuery()->get('redirect')) ? $request->getQuery()->get('redirect') : null;
+//
+        if (!$login) {
+            return array(
+                'formLogin' => $model->getFormLoginCadastro(),
+                //'enableRegistration' => $this->getOptions()->getEnableRegistration(),
+                'redirect' => $redirect,
+            );
+        }
+        
+        // TODO: Add the redirect parameter here...
+        return $this->redirect()->toUrl($this->url()->fromRoute('user/login') . ($redirect ? '?redirect='.$redirect : ''));        
     }    
 }

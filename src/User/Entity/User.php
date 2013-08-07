@@ -44,6 +44,7 @@ class User {
      * Atributo de $profile
      *
      * @ORM\OneToOne(targetEntity="Profile", mappedBy="user")
+     * @Annotation\Exclude()
      * @var obj
      * @access protected
      */
@@ -53,6 +54,7 @@ class User {
      * Atributo de $login
      *
      * @ORM\Column(type="string", length=100, unique=true)
+     * @Annotation\Filter({"name":"StripTags"})
      * @Annotation\Filter({"name":"StringTrim"})
      * @Annotation\Validator({"name":"StringLength", "options":{"min":3, "max":100}})
      * @Annotation\Attributes({"type":"text"})
@@ -64,9 +66,10 @@ class User {
     protected $login = NULL;
     
     /**
-     * Atributo de $email
+     * Atributo de $displayName
      *
-     * @ORM\Column(type="string", length=100, unique=true)
+     * @ORM\Column(type="string", length=100, unique=false)
+     * @Annotation\Filter({"name":"StripTags"})
      * @Annotation\Filter({"name":"StringTrim"})
      * @Annotation\Validator({"name":"StringLength", "options":{"min":3, "max":100}})
      * @Annotation\Attributes({"type":"text"})
@@ -82,8 +85,8 @@ class User {
      *
      * @ORM\Column(type="string", length=100, unique=true)
      * @Annotation\Filter({"name":"StringTrim"})
-     * @Annotation\Validator({"name":"StringLength", "options":{"min":3, "max":100}})
-     * @Annotation\Attributes({"type":"text"})
+     * @Annotation\Attributes({"type":"email"})
+     * @Annotation\Validator({"name":"EmailAddress"})
      * @Annotation\Options({"label":"Email:"})
      *
      * @var string
@@ -99,7 +102,7 @@ class User {
      * @Annotation\Filter({"name":"StringTrim"})
      * @Annotation\Validator({"name":"StringLength", "options":{"min":5, "max":50}})
      * @Annotation\Attributes({"type":"password"})
-     * @Annotation\Options({"label":"Password:"})
+     * @Annotation\Options({"label":"Senha:"})
      *
      * @var string
      * @access protected
@@ -201,7 +204,6 @@ class User {
      */
     public function setDisplayName($displayName) {
         $this->displayName = (string) $displayName;
-        $this->displayName = md5($this->displayName);
         return $this;
     }
 
