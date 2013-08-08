@@ -27,45 +27,37 @@ class UserController extends AbstractActionController
         if ($this->userAuthentication()->hasIdentity() && $this->userAuthentication()->getIdentity()->getLogin() <> 'guest') {
             return $this->redirect()->toRoute('home');
         }
-        
+       
         $login = NULL;
         $model = $this->getServiceLocator()->get('user.model_user');
         $request = $this->getRequest();
+        $form = $model->getFormLogin();
         
+        $redirectUrl = $this->url()->fromRoute('user/login')
+            . ($redirect ? '?redirect=' . $redirect : '');        
+        
+        if ($request->isPost()) {
+            $this->userAuthentication()->getAuthService()->clearIdentity();
+             $form->setData($request->getPost());
+            if(!$form->isValid()){
+                return array(
+                    'formLogin' => $form,
+                    'redirect' => $redirectUrl,
+                );
+            }      
+            return $this->forward()->dispatch('User', array('action' => 'authenticate'));               
+        }
         if ($request->getQuery()->get('redirect')) {
             $redirect = $request->getQuery()->get('redirect');
         } else {
             $redirect = false;
         }
         
-        $redirectUrl = $this->url()->fromRoute('user/login')
-            . ($redirect ? '?redirect=' . $redirect : '');
-        $prg = $this->prg($redirectUrl, true);
+        return array(
+            'formLogin' => $form,
+            'redirect' => $redirectUrl,
+        );
         
-        if ($prg instanceof Response) {
-            return $prg;
-        } elseif ($prg === false) {
-            return array(
-                'formLogin' => $model->getFormLogin(),
-                //'enableRegistration' => $this->getOptions()->getEnableRegistration(),
-                'redirect' => $redirect,
-            );
-        }        
-        
-        
-        // clear adapters
-        //$this->userAuthentication()->getAuthAdapter()->resetAdapters();
-        $this->userAuthentication()->getAuthService()->clearIdentity();
-        $form = $model->getFormLogin();
-        $form->setData($request->getPost());
-        if(!$form->isValid()){
-            return array(
-                'formLogin' => $form,
-                //'enableRegistration' => $this->getOptions()->getEnableRegistration(),
-                'redirect' => $redirect,
-            );           
-        }
-        return $this->forward()->dispatch('User', array('action' => 'authenticate'));
         
     }
     
@@ -76,22 +68,21 @@ class UserController extends AbstractActionController
         $redirect = $this->params()->fromPost('redirect', $this->params()->fromQuery('redirect', false));
         
         $posts = $request->getPost();
-        $this->userAuthentication()->getAuthAdapter()->setIdentity($posts['usuario']);
+        $this->userAuthentication()->getAuthAdapter()->setIdentity($posts['login']);
         $this->userAuthentication()->getAuthAdapter()->setCredential($posts['senha']);
-        $auth = $this->userAuthentication()->getAuthService()->authenticate();          
+        $auth = $this->userAuthentication()->getAuthService()->authenticate($this->userAuthentication()->getAuthAdapter());          
 
         if (!$auth->isValid()) {
             $this->flashMessenger()->setNamespace('user-login-form')->addMessage('falha');
             return $this->redirect()->toUrl($this->url()->fromRoute('user/login')
                 . ($redirect ? '?redirect='.$redirect : ''));
         }
-        
-        return $this->redirect()->toUrl($redirect);
+        return $this->redirect()->toUrl('/_admin_');
     }
     
     public function logoutAction()
     {
-        $auth = new AuthenticationService();
+        $auth = $this->userAuthentication()->getAuthService();
         $auth->clearIdentity();
 
         return $this->redirect()->toRoute('home');
